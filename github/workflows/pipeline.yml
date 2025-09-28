@@ -1,0 +1,40 @@
+name: Pipeline de Coleta e Inserção de Dados
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # Executa o workflow toda manhã, às 08:00 (Horário UTC). 
+    # Mude este valor se precisar de outra frequência.
+    - cron: '0 8 * * *' 
+  workflow_dispatch: # Permite que você execute o pipeline manualmente pela aba "Actions"
+
+jobs:
+  executar_coleta:
+    runs-on: ubuntu-latest # O ambiente de máquina virtual que executa o código
+
+    steps:
+      - name: Checkout do Repositório (Baixar o código)
+        uses: actions/checkout@v3
+
+      - name: Configurar Node.js (Versão 18)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar Dependências (npm install)
+        # Instala todas as dependências listadas no seu package.json (express, mysql2, dotenv, etc.)
+        run: npm install 
+
+      - name: Executar o Script de Coleta e Inserção no MySQL
+        run: node collector.js
+        env:
+          # Define as variáveis de ambiente (ENV) no runner, usando as Secrets do GitHub.
+          # Isso permite que o 'dotenv' no seu código funcione com as chaves do GitHub.
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          API_KEY: ${{ secrets.API_KEY }} 
+          # Certifique-se de que todos os Secrets criados estão listados aqui!
